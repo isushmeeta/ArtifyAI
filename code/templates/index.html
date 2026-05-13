@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtifyAI — Neural Style Transfer</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --lavender-soft: #ede8f5;
+    --lavender-mid:  #c9b8e8;
+    --lavender-deep: #9b7fd4;
+    --lavender-ink:  #5c3d9e;
+    --rose-blush:    #f2d4d4;
+    --peach:         #fde8d8;
+    --cream:         #fdf8f2;
+    --warm-white:    #fff9f4;
+    --text-dark:     #2d2040;
+    --text-mid:      #6b5b8a;
+    --text-light:    #a498bf;
+    --border-soft:   rgba(155, 127, 212, 0.2);
+    --shadow-lavender: 0 20px 60px rgba(155, 127, 212, 0.18);
+    --shadow-soft:    0 4px 24px rgba(92, 61, 158, 0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background */
+  .bg-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 60% at 10% 10%, rgba(201,184,232,0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 80%, rgba(242,212,212,0.4) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(253,232,216,0.3) 0%, transparent 70%),
+      var(--cream);
+  }
+  .noise-overlay {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+  .blob {
+    position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0;
+  }
+  .blob-1 { width: 500px; height: 500px; top: -120px; left: -120px; background: rgba(201,184,232,0.35); animation: blobDrift 20s ease-in-out infinite alternate; }
+  .blob-2 { width: 400px; height: 400px; bottom: -80px; right: -80px; background: rgba(242,212,212,0.35); animation: blobDrift 25s ease-in-out infinite alternate-reverse; }
+  .blob-3 { width: 300px; height: 300px; top: 45%; left: 60%; background: rgba(253,232,216,0.4); animation: blobDrift 18s ease-in-out infinite alternate; }
+  @keyframes blobDrift {
+    0% { transform: translate(0,0) scale(1); }
+    100% { transform: translate(40px, 40px) scale(1.08); }
+  }
+
+  /*Navbar */
+  .navbar {
+    background: rgba(253,248,242,0.82);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-soft);
+    padding: 1rem 0;
+    position: relative; z-index: 100;
+  }
+  .navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--lavender-ink) !important;
+    letter-spacing: -0.5px;
+  }
+  .navbar-brand span { color: var(--lavender-deep); }
+  .nav-link {
+    color: var(--text-mid) !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem !important;
+    border-radius: 20px;
+    transition: all 0.2s;
+  }
+  .nav-link:hover { color: var(--lavender-ink) !important; background: rgba(155,127,212,0.1); }
+  .btn-nav {
+    background: var(--lavender-ink);
+    color: #fff !important;
+    border-radius: 30px;
+    padding: 0.4rem 1.3rem !important;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: all 0.25s;
+  }
+  .btn-nav:hover { background: var(--lavender-deep); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(92,61,158,0.25); }
+
+  /* Hero  */
+  .hero {
+    padding: 7rem 0 3.5rem;
+    text-align: center;
+    position: relative; z-index: 1;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(201,184,232,0.4);
+    border: 1px solid rgba(155,127,212,0.3);
+    color: var(--lavender-ink);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.35rem 1rem;
+    border-radius: 30px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-eyebrow .dot { width: 6px; height: 6px; background: var(--lavender-deep); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    color: var(--text-dark);
+    line-height: 1.05;
+    letter-spacing: -1px;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 em {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--lavender-deep);
+  }
+  .hero .subtitle {
+    font-size: 1.15rem;
+    color: var(--text-mid);
+    font-weight: 300;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* ── Cards ── */
+  .card-artify {
+    background: rgba(255,252,248,0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,184,232,0.4);
+    border-radius: 24px;
+    box-shadow: var(--shadow-lavender);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  .card-artify:hover {
+    border-color: rgba(155,127,212,0.45);
+    box-shadow: 0 28px 70px rgba(155,127,212,0.22);
+    transform: translateY(-2px);
+  }
+  .card-head {
+    background: linear-gradient(135deg, rgba(201,184,232,0.3), rgba(242,212,212,0.2));
+    border-bottom: 1px solid rgba(201,184,232,0.35);
+    padding: 1rem 1.5rem;
+    text-align: center;
+  }
+  .card-head-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--lavender-deep);
+  }
+
+  /* Upload Zone */
+  .upload-zone {
+    width: 100%; height: 280px;
+    background: linear-gradient(135deg, rgba(237,232,245,0.5), rgba(253,232,216,0.3));
+    border: 2px dashed rgba(155,127,212,0.35);
+    border-radius: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+  .upload-zone:hover { border-color: var(--lavender-deep); background: rgba(201,184,232,0.2); }
+  .upload-zone i { font-size: 2rem; margin-bottom: 0.6rem; opacity: 0.5; }
+  .upload-zone img { width: 100%; height: 100%; object-fit: contain; }
+
+  .form-control-file {
+    background: rgba(201,184,232,0.15);
+    border: 1px solid rgba(155,127,212,0.25);
+    color: var(--text-dark);
+    border-radius: 12px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .form-control-file:focus { outline: none; border-color: var(--lavender-deep); box-shadow: 0 0 0 3px rgba(155,127,212,0.15); }
+  .form-control-file::file-selector-button {
+    background: var(--lavender-mid);
+    color: var(--lavender-ink);
+    border: none;
+    border-radius: 8px;
+    padding: 0.3rem 0.8rem;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    margin-right: 0.6rem;
+    transition: background 0.2s;
+  }
+  .form-control-file::file-selector-button:hover { background: var(--lavender-deep); color: #fff; }
+
+  /* Slider  */
+  .slider-section { padding: 1.5rem 0; }
+  .slider-label {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--lavender-deep); margin-bottom: 0.8rem;
+  }
+  .slider-track { position: relative; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%; height: 8px;
+    background: rgba(201,184,232,0.35);
+    border-radius: 10px;
+    outline: none;
+    border: 1px solid rgba(155,127,212,0.2);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--warm-white);
+    border: 3px solid var(--lavender-deep);
+    box-shadow: 0 2px 10px rgba(155,127,212,0.35);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 16px rgba(155,127,212,0.5);
+  }
+  .slider-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+    color: var(--lavender-ink);
+    min-width: 3ch; text-align: right;
+  }
+
+  /* Submit Button */
+  .btn-artify {
+    background: linear-gradient(135deg, var(--lavender-deep) 0%, #c67fd4 100%);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 0.9rem 3rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 30px rgba(155,127,212,0.35);
+  }
+  .btn-artify:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px rgba(155,127,212,0.45);
+    background: linear-gradient(135deg, var(--lavender-ink) 0%, var(--lavender-deep) 100%);
+  }
+  .btn-artify:active { transform: translateY(0); }
+
+  /* Result Section */
+  .result-card {
+    background: rgba(255,252,248,0.9);
+    border: 1px solid rgba(155,127,212,0.3);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lavender);
+  }
+  .result-head {
+    background: linear-gradient(135deg, rgba(201,184,232,0.5), rgba(242,212,212,0.4));
+    padding: 1rem 1.5rem;
+    text-align: center;
+    font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--lavender-ink);
+    border-bottom: 1px solid rgba(155,127,212,0.2);
+  }
+  .btn-download {
+    background: transparent;
+    border: 1.5px solid var(--lavender-deep);
+    color: var(--lavender-deep);
+    border-radius: 30px;
+    padding: 0.55rem 1.8rem;
+    font-weight: 600; font-size: 0.88rem;
+    transition: all 0.25s; cursor: pointer; text-decoration: none;
+    display: inline-block; margin: 1.2rem auto;
+  }
+  .btn-download:hover { background: var(--lavender-deep); color: #fff; }
+
+  /* ── Section Headers ── */
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--text-dark);
+    text-align: center; margin-bottom: 0.4rem;
+  }
+  .section-sub { text-align: center; color: var(--text-light); font-size: 0.9rem; margin-bottom: 2.5rem; }
+
+  /* ── Examples ── */
+  .example-wrap {
+    background: rgba(255,252,248,0.8);
+    border: 1px solid rgba(201,184,232,0.35);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex; align-items: center; gap: 1.5rem;
+    transition: all 0.3s;
+  }
+  .example-wrap:hover { border-color: rgba(155,127,212,0.5); box-shadow: var(--shadow-soft); }
+  .example-inputs { flex: 1; display: grid; gap: 1rem; }
+  .example-output { flex: 1; }
+  .example-img {
+    width: 100%; height: 200px; object-fit: contain;
+    border-radius: 12px;
+    border: 1px solid rgba(201,184,232,0.4);
+    background: rgba(237,232,245,0.25);
+  }
+  .example-role {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-light);
+    margin-bottom: 0.4rem; text-align: center;
+  }
+  .example-arrow { color: var(--lavender-mid); font-size: 1.6rem; }
+  @media (max-width: 767px) {
+    .example-wrap { flex-direction: column; }
+    .example-arrow { transform: rotate(90deg); }
+  }
+
+  /* ── FAQ ── */
+  .accordion-item {
+    background: rgba(255,252,248,0.8) !important;
+    border: 1px solid rgba(201,184,232,0.35) !important;
+    border-radius: 14px !important;
+    margin-bottom: 0.6rem;
+    overflow: hidden;
+  }
+  .accordion-button {
+    background: transparent !important;
+    color: var(--text-dark) !important;
+    font-weight: 500; font-size: 0.95rem;
+    border: none;
+    box-shadow: none !important;
+  }
+  .accordion-button:not(.collapsed) {
+    color: var(--lavender-ink) !important;
+    background: rgba(201,184,232,0.2) !important;
+  }
+  .accordion-button::after {
+    filter: hue-rotate(220deg) saturate(1.5);
+  }
+  .accordion-body { color: var(--text-mid); font-size: 0.92rem; line-height: 1.7; }
+
+  /* ── Footer ── */
+  footer {
+    background: linear-gradient(180deg, transparent, rgba(201,184,232,0.15));
+    border-top: 1px solid rgba(201,184,232,0.3);
+    padding: 4rem 0 2rem;
+    margin-top: 5rem;
+    position: relative; z-index: 1;
+  }
+  .footer-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700;
+    color: var(--lavender-ink); margin-bottom: 0.7rem;
+  }
+  .footer-text { color: var(--text-light); font-size: 0.88rem; line-height: 1.7; }
+  .footer-head { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--lavender-deep); margin-bottom: 1.2rem; }
+  .footer-link { color: var(--text-mid); text-decoration: none; display: block; margin-bottom: 0.6rem; font-size: 0.9rem; transition: color 0.2s; }
+  .footer-link:hover { color: var(--lavender-ink); }
+  .social-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(201,184,232,0.35);
+    border: 1px solid rgba(155,127,212,0.2);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--lavender-ink); text-decoration: none;
+    font-size: 0.85rem; margin-right: 8px;
+    transition: all 0.25s;
+  }
+  .social-btn:hover { background: var(--lavender-deep); color: #fff; border-color: var(--lavender-deep); }
+  .footer-bottom { font-size: 0.8rem; color: var(--text-light); text-align: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(201,184,232,0.25); }
+
+  /* ── Loader ── */
+  .loader-overlay {
+    position: fixed; inset: 0;
+    background: rgba(237,232,245,0.88);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .loader-overlay.active { opacity: 1; pointer-events: all; }
+  .spinner-ring {
+    width: 64px; height: 64px;
+    border: 3px solid rgba(155,127,212,0.2);
+    border-top-color: var(--lavender-deep);
+    border-right-color: rgba(198,127,212,0.6);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; color: var(--lavender-ink);
+    margin-top: 1.2rem; letter-spacing: 0.05em;
+  }
+  .loader-sub { color: var(--text-light); font-size: 0.85rem; margin-top: 0.3rem; }
+
+  /* ── Utility ── */
+  .content-wrap { position: relative; z-index: 1; }
+  .section-pad { padding: 4rem 0; }
+  .fade-up { animation: fadeUp 0.7s ease-out both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Decorative petal shapes */
+  .petal {
+    position: absolute; pointer-events: none; opacity: 0.18;
+    border-radius: 80% 20% 80% 20%;
+  }
+  .petal-1 { width: 120px; height: 60px; top: 30px; right: 40px; background: var(--lavender-mid); transform: rotate(30deg); }
+  .petal-2 { width: 80px; height: 40px; bottom: 20px; left: 30px; background: var(--rose-blush); transform: rotate(-20deg); }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas"></div>
+<div class="noise-overlay"></div>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="#"><i class="fas fa-wand-magic-sparkles me-2" style="color:var(--lavender-mid)"></i>Artify<span>AI</span></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon" style="filter:invert(40%) sepia(50%) saturate(500%) hue-rotate(220deg)"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li><a class="nav-link" href="#">Home</a></li>
+        <li><a class="nav-link" href="#">Gallery</a></li>
+        <li><a class="nav-link" href="#">Features</a></li>
+        <li><a class="nav-link" href="#">Pricing</a></li>
+        <li><a class="nav-link" href="#">Contact</a></li>
+        <li class="ms-2"><a class="nav-link btn-nav" href="#">Sign In</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero content-wrap">
+  <div class="container">
+    <div class="hero-eyebrow fade-up"><span class="dot"></span>AdaIN Neural Style Transfer</div>
+    <h1 class="fade-up" style="animation-delay:0.1s">Paint Your World<br><em>With AI Artistry</em></h1>
+    <p class="subtitle fade-up" style="animation-delay:0.2s">Upload any photo and transform it with the brushstroke of a master. Powered by deep neural networks trained from scratch.</p>
+  </div>
+</div>
+
+<!-- MAIN FORM -->
+<div class="content-wrap container mb-5">
+  <form method="post" enctype="multipart/form-data" id="uploadForm">
+    <!-- Hidden tag placeholder for Flask CSRF if needed -->
+
+    <div class="row g-4 fade-up" style="animation-delay:0.3s">
+      <!-- Content Image -->
+      <div class="col-md-6">
+        <div class="card-artify h-100">
+          <div class="card-head"><span class="card-head-label"><i class="fas fa-image me-2"></i>Content Source</span></div>
+          <div class="p-4">
+            <div class="upload-zone" id="contentPreview">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span>Select Content Image</span>
+              <small style="font-size:0.75rem;margin-top:0.3rem;opacity:0.7">JPG, PNG up to 10MB</small>
+            </div>
+            <input type="file" name="content" accept="image/*" class="form-control-file" onchange="previewFile(this, 'contentPreview')">
+          </div>
+        </div>
+      </div>
+
+      <!-- Style Image -->
+      <div class="col-md-6">
+        <div class="card-artify h-100">
+          <div class="card-head"><span class="card-head-label"><i class="fas fa-palette me-2"></i>Style Reference</span></div>
+          <div class="p-4">
+            <div class="upload-zone" id="stylePreview">
+              <i class="fas fa-paint-brush"></i>
+              <span>Select Style Image</span>
+              <small style="font-size:0.75rem;margin-top:0.3rem;opacity:0.7">Any painting, sketch or artwork</small>
+            </div>
+            <input type="file" name="style" accept="image/*" class="form-control-file" onchange="previewFile(this, 'stylePreview')">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="row justify-content-center mt-4 fade-up" style="animation-delay:0.4s">
+      <div class="col-md-7">
+        <div class="card-artify p-4">
+          <div class="slider-section">
+            <p class="slider-label text-center"><i class="fas fa-sliders-h me-2"></i>Style Strength</p>
+            <div class="d-flex align-items-center gap-3">
+              <span style="font-size:0.8rem;color:var(--text-light)">Subtle</span>
+              <div class="flex-grow-1 slider-track">
+                <input type="range" name="alpha" id="alphaRange" min="0" max="1" step="0.1" value="1.0">
+              </div>
+              <span style="font-size:0.8rem;color:var(--text-light)">Vivid</span>
+              <span class="slider-val" id="sliderVal">1.0</span>
+            </div>
+          </div>
+          <div class="text-center mt-2">
+            <button type="submit" class="btn-artify" onclick="document.getElementById('loader').classList.add('active')">
+              <i class="fas fa-sparkles me-2"></i>Artify My Image
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+
+
+  <div class="row justify-content-center mt-5" id="resultSection">
+    <div class="col-md-8">
+      <div class="result-card">
+        <div class="result-head">✨ Stylized Result</div>
+        <img src="{{ url_for('send_image', filename=result_image) }}" class="img-fluid w-100" alt="Stylized Output">
+        <div class="text-center">
+          <a href="{{ url_for('send_image', filename=result_image) }}" download class="btn-download">
+            <i class="fas fa-download me-2"></i>Download
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EXAMPLES -->
+<section class="content-wrap container section-pad">
+  <h2 class="section-title">Before & After</h2>
+  <p class="section-sub">See what ArtifyAI can do with your images</p>
+  <div class="d-flex flex-column gap-4">
+
+    <div class="example-wrap fade-up">
+      <div class="example-inputs">
+        <div>
+          <div class="example-role">Content Image</div>
+          <!-- <img src="{{ url_for('send_example', filename='brad_pitt.jpg') }}" class="example-img" alt="Content"> -->
+          <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Content Image</div>
+        </div>
+        <div>
+          <div class="example-role">Style Image</div>
+          <!-- <img src="{{ url_for('send_example', filename='sketch.png') }}" class="example-img" alt="Style"> -->
+          <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Sketch Style</div>
+        </div>
+      </div>
+      <div class="example-arrow">→</div>
+      <div class="example-output">
+        <div class="example-role">Output</div>
+        <!-- <img src="{{ url_for('send_example', filename='stylized_brad_pitt.jpg') }}" class="example-img" alt="Output"> -->
+        <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Stylized Result</div>
+      </div>
+    </div>
+
+    <div class="example-wrap fade-up" style="animation-delay:0.1s">
+      <div class="example-inputs">
+        <div>
+          <div class="example-role">Content Image</div>
+          <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Content Image</div>
+        </div>
+        <div>
+          <div class="example-role">Style Image</div>
+          <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Picasso Style</div>
+        </div>
+      </div>
+      <div class="example-arrow">→</div>
+      <div class="example-output">
+        <div class="example-role">Output</div>
+        <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Stylized Result</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="content-wrap container section-pad" style="padding-top:0">
+  <h2 class="section-title">Questions?</h2>
+  <p class="section-sub">Everything you need to know</p>
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="accordion" id="faq">
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f1">Is it a pretrained model?</button></h2>
+          <div id="f1" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">No, we train the model ourselves from scratch using PyTorch.</div></div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f2">Is this platform free?</button></h2>
+          <div id="f2" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Yes! This demo is available as a free experience.</div></div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f3">Which painting styles can be used?</button></h2>
+          <div id="f3" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Almost any painting — impressionist, abstract, cubist, watercolor, sketch, line art, and more. If it looks like art, it works.</div></div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f4">What's the tech stack?</button></h2>
+          <div id="f4" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Python · PyTorch · Flask. Built with love and a lot of GPU hours.</div></div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f5">Which dataset was used?</button></h2>
+          <div id="f5" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">The model is trained on large-scale image datasets covering diverse photographic and artistic content.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="content-wrap">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <div class="footer-brand"><i class="fas fa-wand-magic-sparkles me-2"></i>ArtifyAI</div>
+        <p class="footer-text">"Every artist dips his brush in his own soul, and paints his own nature into his pictures."</p>
+        <p class="footer-text mt-2">Empowering creators with state-of-the-art AI tools to reimagine reality through artistic expression.</p>
+      </div>
+      <div class="col-lg-2 col-md-6">
+        <p class="footer-head">Quick Links</p>
+        <a class="footer-link" href="#">Home</a>
+        <a class="footer-link" href="#">About Us</a>
+        <a class="footer-link" href="#">Showcase</a>
+        <a class="footer-link" href="#">API Docs</a>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <p class="footer-head">Contact Us</p>
+        <p class="footer-text mb-2"><i class="fas fa-map-marker-alt me-2"></i>123 Innovation Dr, Tech City</p>
+        <p class="footer-text mb-2"><i class="fas fa-envelope me-2"></i>hello@artifyai.io</p>
+        <p class="footer-text mb-2"><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</p>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <p class="footer-head">Follow Us</p>
+        <div class="mb-3">
+          <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-github"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-linkedin"></i></a>
+        </div>
+        <p class="footer-text">Subscribe for the latest updates from our neural canvas.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2025 ArtifyAI Inc. All rights reserved. · Privacy Policy · Terms of Service</div>
+  </div>
+</footer>
+
+<!-- LOADER -->
+<div class="loader-overlay" id="loader">
+  <div class="spinner-ring"></div>
+  <p class="loader-text">Painting your image…</p>
+  <p class="loader-sub">Neural network is dreaming</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // File preview
+  function previewFile(input, previewId) {
+    const zone = document.getElementById(previewId);
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      zone.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:100%;height:100%;object-fit:contain;border-radius:14px;">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Slider
+  const range = document.getElementById('alphaRange');
+  const valDisplay = document.getElementById('sliderVal');
+  function updateSlider() {
+    const v = range.value;
+    valDisplay.textContent = v;
+    const pct = ((v - range.min) / (range.max - range.min)) * 100;
+    range.style.background = `linear-gradient(to right, var(--lavender-deep) ${pct}%, rgba(201,184,232,0.35) ${pct}%)`;
+  }
+  range.addEventListener('input', updateSlider);
+  updateSlider();
+
+  // Smooth scroll to result if present
+  window.addEventListener('load', () => {
+    const r = document.getElementById('resultSection');
+    if (r) r.scrollIntoView({ behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>
