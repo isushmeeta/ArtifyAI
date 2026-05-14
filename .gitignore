@@ -15,4 +15,8 @@ code/venv/
 .idea/
 *.pt
 
-code/experiment/final_exp/*.png
+InputOuputImages/
+code/content_data/
+code/style_data/
+code/experiment/final_exp/
+code/adain_algo.png
