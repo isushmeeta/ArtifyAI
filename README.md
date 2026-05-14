@@ -6,9 +6,9 @@ colorTo: pink
 sdk: docker
 pinned: false
 license: mit
-short_description: Neural Style Transfer web app using AdaIN
 app_file: code/app.py
 ---
+
 # 🎨 ArtifyAI — Neural Style Transfer
 
 - Transform any photo into an art using deep learning.
