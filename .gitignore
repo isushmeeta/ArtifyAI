@@ -14,3 +14,5 @@ code/venv/
 .vscode/
 .idea/
 *.pt
+
+code/experiment/final_exp/*.png
