@@ -2,8 +2,8 @@ import os
 import gdown
 
 
-VGG_PATH = "vgg_normalised.pth"
-DECODER_DIR = "experiment/final_exp"
+VGG_PATH = "code/vgg_normalised.pth"
+DECODER_DIR = "code/experiment/final_exp"
 DECODER_PATH = os.path.join(DECODER_DIR, "decoder_final.pth")
 
 #GDrive file IDs
