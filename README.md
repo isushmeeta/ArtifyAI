@@ -6,7 +6,6 @@ colorTo: pink
 sdk: docker
 pinned: false
 license: mit
-app_file: code/app.py
 ---
 
 # 🎨 ArtifyAI — Neural Style Transfer
