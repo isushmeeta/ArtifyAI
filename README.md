@@ -1,7 +1,16 @@
-
+---
+title: ArtifyAI
+emoji: 🎨
+colorFrom: purple
+colorTo: pink
+sdk: docker
+pinned: false
+license: mit
+short_description: Neural Style Transfer web app using AdaIN
+---
 # 🎨 ArtifyAI — Neural Style Transfer
 
-> Transform any photo into an art using deep learning.
+- Transform any photo into an art using deep learning.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.2.2-EE4C2C?style=flat-square&logo=pytorch)
