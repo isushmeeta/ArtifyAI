@@ -14,7 +14,7 @@ code/venv/
 .vscode/
 .idea/
 *.pt
-
+code/examples/
 InputOuputImages/
 code/content_data/
 code/style_data/
