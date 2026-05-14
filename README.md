@@ -7,6 +7,7 @@ sdk: docker
 pinned: false
 license: mit
 short_description: Neural Style Transfer web app using AdaIN
+app_file: code/app.py
 ---
 # 🎨 ArtifyAI — Neural Style Transfer
 
