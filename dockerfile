@@ -8,5 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 7860
 
-
-CMD ["python", "app.py"]
+CMD ["python", "code/app.py"]
