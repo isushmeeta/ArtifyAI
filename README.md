@@ -28,13 +28,11 @@ Built from scratch using **AdaIN (Adaptive Instance Normalization)**, a fast fee
 ---
 
 ## 🖼️ Examples
+### Example 1
 
-| Content | Style | Output |
-|--------|-------|--------|
-| ![](InputOuputImages/i-p/content1.jpg) | ![](InputOuputImages/i-p/style1.jpg) | ![](InputOuputImages/o-p/output1.jpg) |
-| ![](InputOuputImages/i-p/content2.jpg) | ![](InputOuputImages/i-p/style2.jpg) | ![](InputOuputImages/o-p/output2.jpg) |
-
----
+| Content | Output |
+|--------|-------|
+| ![Content](examples/input.png) | ![Output](examples/output.png) |
 
 ## 🧠 How It Works
 
