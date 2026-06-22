@@ -11,3 +11,4 @@ Werkzeug==3.1.4
 WTForms==3.2.1
 gunicorn
 gdown
+huggingface_hub
