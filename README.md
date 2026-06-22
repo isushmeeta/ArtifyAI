@@ -17,7 +17,15 @@ license: mit
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.2.2-EE4C2C?style=flat-square&logo=pytorch)
 ![Flask](https://img.shields.io/badge/Flask-3.1.2-black?style=flat-square&logo=flask)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+[![Live Demo](https://img.shields.io/badge/🤗%20Live%20Demo-ArtifyAI-purple?style=flat-square)](https://huggingface.co/spaces/isushmeeta/ArtifyAI)
+ 
 
+---
+ 
+## 🚀 Live Demo
+ 
+**👉 [Try ArtifyAI on Hugging Face Spaces](https://huggingface.co/spaces/isushmeeta/ArtifyAI)**
+ 
 ---
 
 ## ✨ What is ArtifyAI?
@@ -29,11 +37,11 @@ Built from scratch using **AdaIN (Adaptive Instance Normalization)**, a fast fee
 ---
 
 ## 🖼️ Examples
-### Example 1
-
-| Content | Output |
-|--------|-------|
-| ![Content](examples/input.png) | ![Output](examples/output.png) |
+| Content | Style | Output |
+|--------|-------|--------|
+| ![Brad Pitt](https://github.com/isushmeeta/ArtifyAI/raw/main/code/examples/brad_pitt.jpg) | ![Picasso](https://github.com/isushmeeta/ArtifyAI/raw/main/code/examples/picasso_seated_nude_hr.jpg) | ![Result](https://github.com/isushmeeta/ArtifyAI/raw/main/code/examples/stylized_brad_pitt.jpg) |
+| ![Chicago](https://github.com/isushmeeta/ArtifyAI/raw/main/code/examples/chicago.jpg) | ![Brushstrokes](https://github.com/isushmeeta/ArtifyAI/raw/main/code/examples/brushstrokes.jpg) | ![Result](https://github.com/isushmeeta/ArtifyAI/raw/main/code/examples/stylized_chicago.jpg) |
+ 
 
 ## 🧠 How It Works
 
@@ -85,7 +93,7 @@ pip install -r ../requirements.txt
 python app.py
 ```
 
-Then open **http://localhost:5000** in your browser.
+Then open **http://localhost:7860** in your browser.
 
 ---
 
@@ -166,6 +174,7 @@ ArtifyAI/
 
 **Your Name**
 - GitHub: [@isushmeeta](https://github.com/isushmeeta)
+- 🤗 Hugging Face: [isushmeeta](https://huggingface.co/isushmeeta)
 
 ---
 
