@@ -554,23 +554,23 @@
   <p class="section-sub">See what ArtifyAI can do with your images</p>
   <div class="d-flex flex-column gap-4">
 
-    <div class="example-wrap fade-up">
+    <div class="example-wrap fade-up"style="animation-delay:0.1s">
       <div class="example-inputs">
         <div>
           <div class="example-role">Content Image</div>
-          <!-- <img src="{{ url_for('send_example', filename='brad_pitt.jpg') }}" class="example-img" alt="Content"> -->
+          <img src="{{ url_for('send_example', filename='brad_pitt.jpg') }}" class="example-img" alt="Content">
           <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Content Image</div>
         </div>
         <div>
           <div class="example-role">Style Image</div>
-          <!-- <img src="{{ url_for('send_example', filename='sketch.png') }}" class="example-img" alt="Style"> -->
+          <img src="{{ url_for('send_example', filename='sketch.png') }}" class="example-img" alt="Style">
           <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Sketch Style</div>
         </div>
       </div>
       <div class="example-arrow">→</div>
       <div class="example-output">
         <div class="example-role">Output</div>
-        <!-- <img src="{{ url_for('send_example', filename='stylized_brad_pitt.jpg') }}" class="example-img" alt="Output"> -->
+        <img src="{{ url_for('send_example', filename='stylized_brad_pitt.jpg') }}" class="example-img" alt="Output">
         <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Stylized Result</div>
       </div>
     </div>
@@ -579,17 +579,17 @@
       <div class="example-inputs">
         <div>
           <div class="example-role">Content Image</div>
-          <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Content Image</div>
+          <img src="{{ url_for('send_example', filename='avril.jpg') }}" class="example-img" alt="Content">
         </div>
         <div>
           <div class="example-role">Style Image</div>
-          <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Picasso Style</div>
+          <img src="{{ url_for('send_example', filename='antimonocromatismo.jpg') }}" class="example-img" alt="Style">
         </div>
       </div>
       <div class="example-arrow">→</div>
       <div class="example-output">
         <div class="example-role">Output</div>
-        <div class="example-img" style="display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.85rem;">Stylized Result</div>
+        <img src="{{ url_for('send_example', filename='stylized_avril.jpg') }}" class="example-img" alt="Style">
       </div>
     </div>
 

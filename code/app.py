@@ -148,6 +148,7 @@ def send_image(filename):
 
 @app.route('/examples/<path:filename>')
 def send_example(filename):
+    examples_dir = os.path.join(BASE_DIR, 'examples')
     return send_from_directory('examples', filename)
 
 
