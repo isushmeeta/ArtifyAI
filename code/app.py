@@ -14,14 +14,16 @@ import io
 from utils.models import VGGEncoder, Decoder
 from utils.utils import adaptive_instance_normalization, calc_mean_std
 
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 app.config['WTF_CSRF_ENABLED'] = False 
 Bootstrap(app)
 
+
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 class UploadForm(FlaskForm):
@@ -138,7 +140,10 @@ def index():
 
 @app.route('/uploads/<filename>')
 def send_image(filename):
+    full_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    print(f"Serving file: {filename}, exists: {os.path.exists(full_path)}")
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    
 
 
 @app.route('/examples/<path:filename>')
